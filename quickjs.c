@@ -42,6 +42,7 @@
 #ifdef _MSC_VER
 #pragma function (ceil)
 #pragma function (floor)
+#pragma function (log2)
 
 #include <WinSock2.h>
 

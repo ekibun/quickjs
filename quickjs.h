@@ -28,11 +28,6 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#if defined(__ANDROID__)
-#include <android/log.h>
-#define printf(...) __android_log_print(ANDROID_LOG_INFO, "qjs", __VA_ARGS__)
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -45,11 +40,7 @@ extern "C" {
 #else
 #define js_likely(x)     (x)
 #define js_unlikely(x)   (x)
-#ifdef _MSC_VER
-#define js_force_inline  __forceinline
-#else
 #define js_force_inline  inline
-#endif
 #define __js_printf_like(a, b)
 #endif
 
@@ -71,10 +62,6 @@ typedef uint32_t JSAtom;
 
 #ifndef JS_PTR64
 #define JS_NAN_BOXING
-#endif
-
-#ifdef _MSC_VER
-typedef size_t ssize_t;
 #endif
 
 enum {
@@ -228,23 +215,8 @@ typedef struct JSValue {
 #define JS_VALUE_GET_FLOAT64(v) ((v).u.float64)
 #define JS_VALUE_GET_PTR(v) ((v).u.ptr)
 
-#ifdef _MSC_VER
-static inline JSValue JS_MKVAL(int tag, int32_t val) {
-    JSValue v;
-    v.u.int32 = val;
-    v.tag = tag;
-    return v;
-}
-static inline JSValue JS_MKPTR(int tag, void *val) {
-    JSValue v;
-    v.u.ptr = val;
-    v.tag = tag;
-    return v;
-}
-#else
 #define JS_MKVAL(tag, val) (JSValue){ (JSValueUnion){ .int32 = val }, tag }
 #define JS_MKPTR(tag, p) (JSValue){ (JSValueUnion){ .ptr = p }, tag }
-#endif
 
 #define JS_TAG_IS_FLOAT64(tag) ((unsigned)(tag) == JS_TAG_FLOAT64)
 
@@ -549,9 +521,9 @@ static js_force_inline JSValue JS_NewInt64(JSContext *ctx, int64_t val)
 {
     JSValue v;
     if (val == (int32_t)val) {
-        v = JS_NewInt32(ctx, (int32_t)val);
+        v = JS_NewInt32(ctx, val);
     } else {
-        v = __JS_NewFloat64(ctx, (double)val);
+        v = __JS_NewFloat64(ctx, val);
     }
     return v;
 }
@@ -694,7 +666,7 @@ static inline JSValue JS_DupValue(JSContext *ctx, JSValueConst v)
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
         p->ref_count++;
     }
-    return v;
+    return (JSValue)v;
 }
 
 static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
@@ -703,7 +675,7 @@ static inline JSValue JS_DupValueRT(JSRuntime *rt, JSValueConst v)
         JSRefCountHeader *p = (JSRefCountHeader *)JS_VALUE_GET_PTR(v);
         p->ref_count++;
     }
-    return v;
+    return (JSValue)v;
 }
 
 int JS_ToBool(JSContext *ctx, JSValueConst val); /* return -1 for JS_EXCEPTION */

@@ -29,6 +29,11 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(__ANDROID__)
+#include <android/log.h>
+#define printf(...) __android_log_print(ANDROID_LOG_INFO, "qjs", __VA_ARGS__)
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif

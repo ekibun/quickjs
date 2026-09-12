@@ -1599,7 +1599,7 @@ static void set_dummy_numeric_ops(JSNumericOperations *ops)
 
 #endif /* CONFIG_BIGNUM */
 
-#if !defined(CONFIG_STACK_CHECK)
+#if !defined(CONFIG_STACK_CHECK) || defined(_MSC_VER)
 /* no stack limitation */
 static inline uintptr_t js_get_stack_pointer(void)
 {
@@ -1614,12 +1614,7 @@ static inline BOOL js_check_stack_overflow(JSRuntime *rt, size_t alloca_size)
 /* Note: OS and CPU dependent */
 static inline uintptr_t js_get_stack_pointer(void)
 {
-#ifdef _MSC_VER
-    uint8_t ptr;
-    return &ptr;
-#else
     return (uintptr_t)__builtin_frame_address(0);
-#endif
 }
 
 static inline BOOL js_check_stack_overflow(JSRuntime *rt, size_t alloca_size)
